@@ -53,7 +53,7 @@ const BudgetView = (props) => {
                 justifyContent: "center",
                 height: "100vh",
                 width: "100vw",
-                mt: {xs: 10, sm: 0},
+                mt: {xs: 40, sm: 0},
                 p: 2
             }}
         >

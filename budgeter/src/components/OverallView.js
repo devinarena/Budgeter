@@ -1,5 +1,6 @@
-import { Box, CircularProgress, LinearProgress, Paper, Typography } from "@mui/material";
+import { Box, CircularProgress, Paper, Typography } from "@mui/material";
 import InsertEmoticonIcon from '@mui/icons-material/InsertEmoticon';
+import SentimentVeryDissatisfiedIcon from '@mui/icons-material/SentimentVeryDissatisfied';
 
 const OverallView = (props) => {
     const getOverallUtilization = () => {
@@ -46,7 +47,8 @@ const OverallView = (props) => {
                     {props.totalIncome - props.totalExpenses > 0 && <Typography variant="p" color="green">+${props.totalIncome - props.totalExpenses}</Typography>}
                     {props.totalIncome - props.totalExpenses < 0 && <Typography variant="p" color="red">-${Math.abs(props.totalIncome - props.totalExpenses)}</Typography>}
                 </Box>
-                {getOverallUtilization() < 60 && <InsertEmoticonIcon sx={{ fontSize: "5rem", color: "green" }} />}
+                {getOverallUtilization() < 75 && <InsertEmoticonIcon sx={{ fontSize: "5rem", color: "green" }} />}
+                {getOverallUtilization() >= 75 && <SentimentVeryDissatisfiedIcon sx={{ fontSize: "5rem", color: "red" }} />}
             </Box>
         </Paper>
     );

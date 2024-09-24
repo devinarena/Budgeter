@@ -10,9 +10,10 @@ const App = () => {
   const [budget, setBudget] = useState({});
   const [error, setError] = useState("");
 
+
   const viewBudget = async (providedYear, providedMonth) => {
-    const year = providedYear || document.getElementById("year").value;
-    const month = providedMonth || document.getElementById("month").value;
+    let year = providedYear || document.getElementById("year").value;
+    let month = providedMonth || document.getElementById("month").value;
 
     if (!year) year = new Date().getFullYear();
     if (!month) month = (new Date().getMonth() + 1).toString().padStart(2, "0");
