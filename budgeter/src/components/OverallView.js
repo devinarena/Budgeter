@@ -1,4 +1,5 @@
 import { Box, CircularProgress, LinearProgress, Paper, Typography } from "@mui/material";
+import InsertEmoticonIcon from '@mui/icons-material/InsertEmoticon';
 
 const OverallView = (props) => {
     const getOverallUtilization = () => {
@@ -12,7 +13,7 @@ const OverallView = (props) => {
             minWidth: "33%", display: "flex", flexDirection: "column",
             justifyContent: "center", alignItems: "center", p: 2
         }}>
-            <Box sx={{ width: "100%", display: "flex", flexDirection: {xs: "column", sm: "row"}, justifyContent: "space-evenly", alignItems: "center" }}>
+            <Box sx={{ width: "100%", display: "flex", flexDirection: { xs: "column", sm: "row" }, justifyContent: "space-evenly", alignItems: "center" }}>
                 <Box sx={{ display: "flex", flexDirection: "column" }}>
                     <Typography variant="h4">Overall</Typography>
                     <Box sx={{ position: 'relative', display: 'inline-flex', justifyContent: "center", alignItems: "center" }}>
@@ -45,6 +46,7 @@ const OverallView = (props) => {
                     {props.totalIncome - props.totalExpenses > 0 && <Typography variant="p" color="green">+${props.totalIncome - props.totalExpenses}</Typography>}
                     {props.totalIncome - props.totalExpenses < 0 && <Typography variant="p" color="red">-${Math.abs(props.totalIncome - props.totalExpenses)}</Typography>}
                 </Box>
+                {getOverallUtilization() < 60 && <InsertEmoticonIcon sx={{ fontSize: "5rem", color: "green" }} />}
             </Box>
         </Paper>
     );

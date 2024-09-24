@@ -14,7 +14,7 @@ const IncomesView = (props) => {
             </Box>
             <Box sx={{ width: "100%" }}>
                 {props.incomes.map((data, idx) => (
-                    <DataCard key={idx} date={data.date} title={data.description} value={data.amount} />
+                    <DataCard key={idx} date={data.date} title={data.description} value={data.amount} setDeletingDataPoint={props.setDeletingDataPoint} index={idx} />
                 ))}
             </Box>
         </Box >

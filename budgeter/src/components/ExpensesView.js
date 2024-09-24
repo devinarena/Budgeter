@@ -5,7 +5,7 @@ import DataCard from "./DataCard";
 const ExpensesView = (props) => {
     return (
         <Box sx={{
-            flex: 1, width: {xs: "100%", sm: "50%"}, display: "flex", flexDirection: "column",
+            flex: 1, width: { xs: "100%", sm: "50%" }, display: "flex", flexDirection: "column",
             alignItems: "center", px: 1
         }}>
             <Typography variant="h3">Expenses</Typography>
@@ -15,7 +15,7 @@ const ExpensesView = (props) => {
             </Box>
             <Box sx={{ width: "100%" }}>
                 {props.expenses.map((data, idx) => (
-                    <DataCard key={idx} date={data.date} title={data.description} value={-data.amount} />
+                    <DataCard key={idx} date={data.date} title={data.description} value={-data.amount} setDeletingDataPoint={props.setDeletingDataPoint} index={idx} />
                 ))}
             </Box>
         </Box >

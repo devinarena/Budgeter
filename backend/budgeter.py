@@ -6,18 +6,19 @@ import json
 
 from datetime import datetime
 from flask import Flask, request
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 
 app = Flask(__name__)
 
-CORS(app)
+cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
+app.config['CORS_HEADERS'] = 'Content-Type'
 
-@app.route("/ping", methods=["GET"])
+@app.route("/api/ping", methods=["GET"])
 def ping():
     return "pong"
 
 
-@app.route("/lookup", methods=["GET"])
+@app.route("/api/lookup", methods=["GET"])
 def lookup():
     year, month = get_formatted_year_and_month_from_GET()
 
@@ -32,7 +33,8 @@ def lookup():
     return {}
     
 
-@app.route("/income", methods=["GET", "POST"])
+@app.route("/api/income", methods=["GET", "POST"])
+@cross_origin()
 def get_income():
     if request.method == "GET":
         year, month = get_formatted_year_and_month_from_GET()
@@ -55,26 +57,28 @@ def get_income():
         budget_file = os.path.join("budgets", f"budget-{year}-{month}.json")
 
         if not os.path.isfile(budget_file):
-            return []
+            return [], 201
 
         with open(budget_file, "r") as f:
             data = json.load(f)
         
         data["income"].append(body)
 
+        print(f"Adding income {body}")
+
         with open(budget_file, "w") as f:
             json.dump(data, f)
         
-        return data.get("income", [])
+        return data.get("income", []), 200
 
-@app.route("/totalIncome", methods=["GET"])
+@app.route("/api/totalIncome", methods=["GET"])
 def get_total_income():
     year, month = get_formatted_year_and_month_from_GET()
 
     budget_file = os.path.join("budgets", f"budget-{year}-{month}.json")
 
     if not os.path.isfile(budget_file):
-        return "0"
+        return {"total": 0}
     
     with open(budget_file, "r") as f:
         data = json.load(f)
@@ -86,29 +90,53 @@ def get_total_income():
     return {"total": total}
 
 
-@app.route("/expenses", methods=["GET"])
+@app.route("/api/expenses", methods=["GET", "POST"])
+@cross_origin()
 def get_expenses():
-    year, month = get_formatted_year_and_month_from_GET()
+    if request.method == "GET":
+        year, month = get_formatted_year_and_month_from_GET()
 
-    budget_file = os.path.join("budgets", f"budget-{year}-{month}.json")
+        budget_file = os.path.join("budgets", f"budget-{year}-{month}.json")
 
-    if not os.path.isfile(budget_file):
-        return []
+        if not os.path.isfile(budget_file):
+            return []
 
-    with open(budget_file, "r") as f:
-        data = json.load(f)
-    
-    return data.get("expenses", [])
+        with open(budget_file, "r") as f:
+            data = json.load(f)
+        
+        return data.get("expenses", [])
+    elif request.method == "POST":
+        body = request.get_json()
+        date = body.get("date", datetime.now().strftime("%Y-%m-%d"))
+        year = date.split("-")[0]
+        month = date.split("-")[1]
+
+        budget_file = os.path.join("budgets", f"budget-{year}-{month}.json")
+
+        if not os.path.isfile(budget_file):
+            return [], 201
+
+        with open(budget_file, "r") as f:
+            data = json.load(f)
+        
+        data["expenses"].append(body)
+
+        print(f"Adding expense {body}")
+
+        with open(budget_file, "w") as f:
+            json.dump(data, f)
+        
+        return data.get("expenses", []), 200
 
 
-@app.route("/totalExpenses", methods=["GET"])
+@app.route("/api/totalExpenses", methods=["GET"])
 def get_total_expenses():
     year, month = get_formatted_year_and_month_from_GET()
 
     budget_file = os.path.join("budgets", f"budget-{year}-{month}.json")
 
     if not os.path.isfile(budget_file):
-        return "0"
+        return {"total": 0}
     
     with open(budget_file, "r") as f:
         data = json.load(f)
@@ -120,14 +148,14 @@ def get_total_expenses():
     return {"total": total}
 
 
-@app.route("/netIncome", methods=["GET"])
+@app.route("/api/netIncome", methods=["GET"])
 def get_net_income():
     year, month = get_formatted_year_and_month_from_GET()
 
     budget_file = os.path.join("budgets", f"budget-{year}-{month}.json")
 
     if not os.path.isfile(budget_file):
-        return "0"
+        return {"total": 0}
     
     with open(budget_file, "r") as f:
         data = json.load(f)
@@ -141,9 +169,47 @@ def get_net_income():
     return {"total": total}
 
 
+@app.route("/api/income/<string:year>/<string:month>/<int:index>", methods=["DELETE"])
+def delete_income(year, month, index):
+    budget_file = os.path.join("budgets", f"budget-{year}-{month}.json")
+
+    if not os.path.isfile(budget_file):
+        return {"error": f"budget file not found for {year}-{month}"}
+
+    with open(budget_file, "r") as f:
+        data = json.load(f)
+
+    del data["income"][index]
+    print(data)
+
+    with open(budget_file, "w") as f:
+        json.dump(data, f)
+
+    return data
+
+
+@app.route("/api/expenses/<string:year>/<string:month>/<int:index>", methods=["DELETE"])
+def delete_expense(year, month, index):
+    budget_file = os.path.join("budgets", f"budget-{year}-{month}.json")
+
+    if not os.path.isfile(budget_file):
+        return {"error": f"budget file not found for {year}-{month}"}
+
+    with open(budget_file, "r") as f:
+        data = json.load(f)
+
+    del data["expenses"][index]
+    print(data)
+
+    with open(budget_file, "w") as f:
+        json.dump(data, f)
+
+    return data
+
+
 def get_formatted_year_and_month_from_GET():
-    year = request.args.get("year")
-    month = request.args.get("month")
+    year = request.args.get("year", None)
+    month = request.args.get("month", None)
 
     if not year:
         year = str(datetime.now().year)

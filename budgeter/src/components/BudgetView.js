@@ -5,11 +5,44 @@ import OverallView from "./OverallView";
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import AddDataPoint from "./AddDataPoint";
 import { useState } from "react";
+import DeleteDataPoint from "./DeleteDataPoint";
 
 
 const BudgetView = (props) => {
-    
+
     const [addDataOpen, setAddDataOpen] = useState(false);
+    const [deletingDataPoint, setDeletingDataPoint] = useState({});
+
+    const addDataPoint = (data, type) => {
+        fetch(`${process.env.REACT_APP_SERVER_URL}/api/${type}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data),
+        })
+            .then(response => response.json())
+            .then(data => console.log(data))
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+
+        props.viewBudget(props.budget.year, props.budget.month);
+    }
+
+    const deleteDataPoint = () => {
+        fetch(`${process.env.REACT_APP_SERVER_URL}/api/${deletingDataPoint.income ? 'income' : 'expenses'}/${props.budget.year}/${props.budget.month}/${deletingDataPoint.index}`, {
+            method: 'DELETE',
+        })
+            .then(response => response.json())
+            .then(data => console.log(data))
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+
+        props.viewBudget(props.budget.year, props.budget.month);
+        setDeletingDataPoint({});
+    }
 
     return (
         <Box
@@ -20,6 +53,7 @@ const BudgetView = (props) => {
                 justifyContent: "center",
                 height: "100vh",
                 width: "100vw",
+                mt: {xs: 10, sm: 0},
                 p: 2
             }}
         >
@@ -30,17 +64,18 @@ const BudgetView = (props) => {
                 display: "flex", flexDirection: { xs: "column", sm: "row" },
                 justifyContent: "center", width: "100%", height: "100%"
             }}>
-                <IncomesView incomes={props.budget.incomes} totalIncome={props.budget.totalIncome} />
-                <ExpensesView expenses={props.budget.expenses} totalExpenses={props.budget.totalExpenses} />
+                <IncomesView incomes={props.budget.incomes} totalIncome={props.budget.totalIncome} setDeletingDataPoint={setDeletingDataPoint} />
+                <ExpensesView expenses={props.budget.expenses} totalExpenses={props.budget.totalExpenses} setDeletingDataPoint={setDeletingDataPoint} />
             </Box>
             <IconButton onClick={() => setAddDataOpen(true)} sx={{
                 position: "fixed",
                 bottom: 20,
                 right: 20
             }}>
-                <AddCircleIcon sx={{ fontSize: 64, color: "blue" }} />
+                <AddCircleIcon sx={{ fontSize: 64, color: "gray" }} />
             </IconButton>
-            <AddDataPoint open={addDataOpen} onClose={() => setAddDataOpen(false)}/>
+            <AddDataPoint open={addDataOpen} onClose={() => setAddDataOpen(false)} addDataPoint={addDataPoint} />
+            <DeleteDataPoint open={Object.keys(deletingDataPoint).length > 0} onClose={() => setDeletingDataPoint({})} deleteDataPoint={deleteDataPoint} deletingDataPoint={deletingDataPoint} />
         </Box>
     );
 }
