@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/Budgeter/static/css/main.e6c13ad2.css",
-    "main.js": "/Budgeter/static/js/main.7f27df11.js",
+    "main.js": "/Budgeter/static/js/main.39351a1f.js",
     "static/js/453.6d8c4a85.chunk.js": "/Budgeter/static/js/453.6d8c4a85.chunk.js",
     "index.html": "/Budgeter/index.html",
     "main.e6c13ad2.css.map": "/Budgeter/static/css/main.e6c13ad2.css.map",
-    "main.7f27df11.js.map": "/Budgeter/static/js/main.7f27df11.js.map",
+    "main.39351a1f.js.map": "/Budgeter/static/js/main.39351a1f.js.map",
     "453.6d8c4a85.chunk.js.map": "/Budgeter/static/js/453.6d8c4a85.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.e6c13ad2.css",
-    "static/js/main.7f27df11.js"
+    "static/js/main.39351a1f.js"
   ]
 }
