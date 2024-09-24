@@ -30,6 +30,7 @@ const App = () => {
 
     budget.incomes = await fetch(`${process.env.REACT_APP_SERVER_URL}/api/income?year=${year}&month=${month}`)
       .then(response => response.json())
+      .then(response => response.incomes)
       .catch(error => setError(error));
     budget.totalIncome = await fetch(`${process.env.REACT_APP_SERVER_URL}/api/totalIncome?year=${year}&month=${month}`)
       .then(response => response.json())
@@ -38,6 +39,7 @@ const App = () => {
 
     budget.expenses = await fetch(`${process.env.REACT_APP_SERVER_URL}/api/expenses?year=${year}&month=${month}`)
       .then(response => response.json())
+      .then(response => response.expenses)
       .catch(error => setError(error));
     budget.totalExpenses = await fetch(`${process.env.REACT_APP_SERVER_URL}/api/totalExpenses?year=${year}&month=${month}`)
       .then(response => response.json())
