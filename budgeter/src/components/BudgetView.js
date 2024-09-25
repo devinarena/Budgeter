@@ -14,10 +14,11 @@ const BudgetView = (props) => {
     const [deletingDataPoint, setDeletingDataPoint] = useState({});
 
     const addDataPoint = (data, type) => {
-        fetch(`${process.env.REACT_APP_SERVER_URL}/api/${type}`, {
+        fetch(`${process.env.REACT_APP_SERVER_URL}/api/${type}/add`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': btoa(sessionStorage.getItem("pin"))
             },
             body: JSON.stringify(data),
         })
@@ -27,12 +28,21 @@ const BudgetView = (props) => {
                 console.error('Error:', error);
             });
 
-        props.viewBudget(props.budget.year, props.budget.month);
+        props.viewBudget(props.budget.year, props.budget.month, null);
     }
 
     const deleteDataPoint = () => {
-        fetch(`${process.env.REACT_APP_SERVER_URL}/api/${deletingDataPoint.income ? 'income' : 'expenses'}/${props.budget.year}/${props.budget.month}/${deletingDataPoint.index}`, {
-            method: 'DELETE',
+        const type = deletingDataPoint.income ? "income" : "expenses";
+        fetch(`${process.env.REACT_APP_SERVER_URL}/api/${type}/delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': btoa(sessionStorage.getItem("pin"))
+            },
+            body: JSON.stringify({
+                date: deletingDataPoint.date,
+                index: deletingDataPoint.index
+            }),
         })
             .then(response => response.json())
             .then(data => console.log(data))

@@ -13,6 +13,10 @@ app = Flask(__name__)
 cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 app.config['CORS_HEADERS'] = 'Content-Type'
 
+with open("pin.txt", "r") as f:
+    pin = f.readline().strip()
+
+
 @app.route("/api/ping", methods=["GET"])
 def ping():
     return "pong", 200
@@ -33,48 +37,66 @@ def lookup():
     return {}
     
 
-@app.route("/api/income", methods=["GET", "POST"])
+@app.route("/api/income", methods=["POST"])
 @cross_origin()
 def get_income():
-    if request.method == "GET":
-        year, month = get_formatted_year_and_month_from_GET()
+    body = request.get_json()
+    date = body.get("date", datetime.now().strftime("%Y-%m-%d"))
+    year = date.split("-")[0]
+    month = date.split("-")[1]
 
-        budget_file = os.path.join("budgets", f"budget-{year}-{month}.json")
-        print(f"budget-{year}-{month}.json")
-        if not os.path.isfile(budget_file):
-            return {"incomes": []}, 201
+    if request.headers.get("Authorization", "") != pin:
+        return {"error": "invalid pin"}, 401
 
-        with open(budget_file, "r") as f:
-            data = json.load(f)
+    budget_file = os.path.join("budgets", f"budget-{year}-{month}.json")
+    
+    if not os.path.isfile(budget_file):
+        return {"incomes": []}, 201
 
-        return {"incomes": data.get("income", [])}, 200
-    elif request.method == "POST":
-        body = request.get_json()
-        date = body.get("date", datetime.now().strftime("%Y-%m-%d"))
-        year = date.split("-")[0]
-        month = date.split("-")[1]
+    with open(budget_file, "r") as f:
+        data = json.load(f)
 
-        budget_file = os.path.join("budgets", f"budget-{year}-{month}.json")
+    return {"incomes": data.get("income", [])}, 200
 
-        if not os.path.isfile(budget_file):
-            return {"incomes": []}, 201
+@app.route("/api/income/add", methods=["POST"])
+@cross_origin()
+def add_income():
+    body = request.get_json()
+    date = body.get("date", datetime.now().strftime("%Y-%m-%d"))
+    year = date.split("-")[0]
+    month = date.split("-")[1]
 
-        with open(budget_file, "r") as f:
-            data = json.load(f)
-        
-        data["income"].append(body)
+    if request.headers.get("Authorization", "") != pin:
+        return {"error": "invalid pin"}, 401
 
-        print(f"Adding income {body}")
+    budget_file = os.path.join("budgets", f"budget-{year}-{month}.json")
 
-        with open(budget_file, "w") as f:
-            json.dump(data, f)
-        
-        return {"incomes": data.get("income", [])}, 200
+    if not os.path.isfile(budget_file):
+        return {"incomes": []}, 201
+
+    with open(budget_file, "r") as f:
+        data = json.load(f)
+    
+    data["income"].append(body)
+
+    print(f"Adding income {body}")
+
+    with open(budget_file, "w") as f:
+        json.dump(data, f)
+    
+    return {"incomes": data.get("income", [])}, 200
 
 
-@app.route("/api/totalIncome", methods=["GET"])
+@app.route("/api/totalIncome", methods=["POST"])
+@cross_origin()
 def get_total_income():
-    year, month = get_formatted_year_and_month_from_GET()
+    body = request.get_json()
+    date = body.get("date", datetime.now().strftime("%Y-%m-%d"))
+    year = date.split("-")[0]
+    month = date.split("-")[1]
+
+    if request.headers.get("Authorization", "") != pin:
+        return {"error": "invalid pin"}, 401
 
     budget_file = os.path.join("budgets", f"budget-{year}-{month}.json")
 
@@ -91,48 +113,67 @@ def get_total_income():
     return {"total": total}
 
 
-@app.route("/api/expenses", methods=["GET", "POST"])
+@app.route("/api/expenses", methods=["POST"])
 @cross_origin()
 def get_expenses():
-    if request.method == "GET":
-        year, month = get_formatted_year_and_month_from_GET()
+    body = request.get_json()
+    date = body.get("date", datetime.now().strftime("%Y-%m-%d"))
+    year = date.split("-")[0]
+    month = date.split("-")[1]
 
-        budget_file = os.path.join("budgets", f"budget-{year}-{month}.json")
+    if request.headers.get("Authorization", "") != pin:
+        return {"error": "invalid pin"}, 401
 
-        if not os.path.isfile(budget_file):
-            return {"expenses": []}
+    budget_file = os.path.join("budgets", f"budget-{year}-{month}.json")
 
-        with open(budget_file, "r") as f:
-            data = json.load(f)
-        
-        return {"expenses": data.get("expenses", [])}
-    elif request.method == "POST":
-        body = request.get_json()
-        date = body.get("date", datetime.now().strftime("%Y-%m-%d"))
-        year = date.split("-")[0]
-        month = date.split("-")[1]
+    if not os.path.isfile(budget_file):
+        return {"expenses": []}
 
-        budget_file = os.path.join("budgets", f"budget-{year}-{month}.json")
-
-        if not os.path.isfile(budget_file):
-            return {"expenses": []}, 201
-
-        with open(budget_file, "r") as f:
-            data = json.load(f)
-        
-        data["expenses"].append(body)
-
-        print(f"Adding expense {body}")
-
-        with open(budget_file, "w") as f:
-            json.dump(data, f)
-        
-        return {"expenses": data.get("expenses", [])}, 200
+    with open(budget_file, "r") as f:
+        data = json.load(f)
+    
+    return {"expenses": data.get("expenses", [])}
 
 
-@app.route("/api/totalExpenses", methods=["GET"])
+@app.route("/api/expenses/add", methods=["POST"])
+@cross_origin()
+def add_expense():
+    body = request.get_json()
+    date = body.get("date", datetime.now().strftime("%Y-%m-%d"))
+    year = date.split("-")[0]
+    month = date.split("-")[1]
+
+    if request.headers.get("Authorization", "") != pin:
+        return {"error": "invalid pin"}, 401
+
+    budget_file = os.path.join("budgets", f"budget-{year}-{month}.json")
+
+    if not os.path.isfile(budget_file):
+        return {"expenses": []}, 201
+
+    with open(budget_file, "r") as f:
+        data = json.load(f)
+    
+    data["expenses"].append(body)
+
+    print(f"Adding expense {body}")
+
+    with open(budget_file, "w") as f:
+        json.dump(data, f)
+    
+    return {"expenses": data.get("expenses", [])}, 200
+
+
+@app.route("/api/totalExpenses", methods=["POST"])
+@cross_origin()
 def get_total_expenses():
-    year, month = get_formatted_year_and_month_from_GET()
+    body = request.get_json()
+    date = body.get("date", datetime.now().strftime("%Y-%m-%d"))
+    year = date.split("-")[0]
+    month = date.split("-")[1]
+
+    if request.headers.get("Authorization", "") != pin:
+        return {"error": "invalid pin"}, 401
 
     budget_file = os.path.join("budgets", f"budget-{year}-{month}.json")
 
@@ -149,9 +190,15 @@ def get_total_expenses():
     return {"total": total}, 200
 
 
-@app.route("/api/netIncome", methods=["GET"])
+@app.route("/api/netIncome", methods=["POST"])
 def get_net_income():
-    year, month = get_formatted_year_and_month_from_GET()
+    body = request.get_json()
+    date = body.get("date", datetime.now().strftime("%Y-%m-%d"))
+    year = date.split("-")[0]
+    month = date.split("-")[1]
+
+    if request.headers.get("Authorization", "") != pin:
+        return {"error": "invalid pin"}, 401
 
     budget_file = os.path.join("budgets", f"budget-{year}-{month}.json")
 
@@ -170,8 +217,17 @@ def get_net_income():
     return {"total": total}, 200
 
 
-@app.route("/api/income/<string:year>/<string:month>/<int:index>", methods=["DELETE"])
-def delete_income(year, month, index):
+@app.route("/api/income/delete", methods=["POST"])
+def delete_income():
+    body = request.get_json()
+    date = body.get("date", datetime.now().strftime("%Y-%m-%d"))
+    year = date.split("-")[0]
+    month = date.split("-")[1]
+    index = body.get("index", 0)
+
+    if request.headers.get("Authorization", "") != pin:
+        return {"error": "invalid pin"}, 401
+
     budget_file = os.path.join("budgets", f"budget-{year}-{month}.json")
 
     if not os.path.isfile(budget_file):
@@ -181,16 +237,24 @@ def delete_income(year, month, index):
         data = json.load(f)
 
     del data["income"][index]
-    print(data)
 
     with open(budget_file, "w") as f:
         json.dump(data, f)
 
-    return data, 200
+    return data["income"], 200
 
 
-@app.route("/api/expenses/<string:year>/<string:month>/<int:index>", methods=["DELETE"])
-def delete_expense(year, month, index):
+@app.route("/api/expenses/delete", methods=["POST"])
+def delete_expense():
+    body = request.get_json()
+    date = body.get("date", datetime.now().strftime("%Y-%m-%d"))
+    year = date.split("-")[0]
+    month = date.split("-")[1]
+    index = body.get("index", 0)
+
+    if request.headers.get("Authorization", "") != pin:
+        return {"error": "invalid pin"}, 401
+
     budget_file = os.path.join("budgets", f"budget-{year}-{month}.json")
 
     if not os.path.isfile(budget_file):
@@ -200,12 +264,11 @@ def delete_expense(year, month, index):
         data = json.load(f)
 
     del data["expenses"][index]
-    print(data)
 
     with open(budget_file, "w") as f:
         json.dump(data, f)
 
-    return data, 200
+    return data["expenses"], 200
 
 
 def get_formatted_year_and_month_from_GET():
@@ -223,3 +286,7 @@ def get_formatted_year_and_month_from_GET():
         month = f"0{month}"
     
     return year, month
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
